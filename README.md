@@ -23,3 +23,6 @@
 - Enhance user experience by allowing users to step through each selected component from the modal screen, similar to the Find functionality in text editors.
 - Currently, the plugin can only be executed on a single page for performance reasons. In future iterations, optimize the code to support changes across multiple pages, ensuring greater versatility.
 - Handle errors when the user runs the plugin, the modal is opened, but then the user selects "None". Currently, we're not able to handle this error
+
+# Demo
+https://drive.google.com/file/d/1tZHXZuZglC1YGASM1xVPRpr6X5cDSQxJ/view?usp=sharing
