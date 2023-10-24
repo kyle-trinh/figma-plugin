@@ -1,46 +1,54 @@
 import React from 'react';
-import logo from '../assets/logo.svg';
 import '../styles/ui.css';
 
 function App() {
-  const textbox = React.useRef<HTMLInputElement>(undefined);
+  const [originalName, setOriginalName] = React.useState('');
+  const [expectedName, setExpectedName] = React.useState('');
 
-  const countRef = React.useCallback((element: HTMLInputElement) => {
-    if (element) element.value = '5';
-    textbox.current = element;
-  }, []);
+  const handleReplaceAll = () => {
+    if (originalName.trim() === '' || expectedName.trim() === '') {
+      return;
+    }
 
-  const onCreate = () => {
-    const count = parseInt(textbox.current.value, 10);
-    parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*');
+    parent.postMessage({ pluginMessage: { type: 'replace-all', from: originalName, to: expectedName } }, '*');
   };
 
-  const onCancel = () => {
+  const handleCancel = () => {
     parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
   };
+
+  // Signal to controller that the component has been rendered
+  // Ready for communication
+  React.useEffect(() => {
+    parent.postMessage({ pluginMessage: { type: 'ready-signal' } }, '*');
+  }, []);
 
   React.useEffect(() => {
     // This is how we read messages sent from the plugin controller
     window.onmessage = (event) => {
-      const { type, message } = event.data.pluginMessage;
-      if (type === 'create-rectangles') {
-        console.log(`Figma Says: ${message}`);
+      const { type, nodeName } = event.data.pluginMessage;
+
+      if (type === 'nodes-selected') {
+        setOriginalName(nodeName);
       }
     };
   }, []);
 
   return (
-    <div>
-      <img src={logo} />
-      <h2>Rectangle Creator</h2>
-      <p>
-        Count: <input ref={countRef} />
-      </p>
-      <button id="create" onClick={onCreate}>
-        Create
-      </button>
-      <button onClick={onCancel}>Cancel</button>
-    </div>
+    <form>
+      <p>Original layer name</p>
+      <input value={originalName} onChange={(e) => setOriginalName(e.target.value)} required />
+      <p>Expected layer name</p>
+      <input value={expectedName} onChange={(e) => setExpectedName(e.target.value)} required />
+      <div className="action-btns">
+        <button id="create" onClick={handleReplaceAll}>
+          Create
+        </button>
+        <button type="submit" value="submit" onClick={handleCancel}>
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }
 

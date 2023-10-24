@@ -1,26 +1,38 @@
-figma.showUI(__html__);
+const selectedNodes = figma.currentPage.selection;
+
+if (selectedNodes.length > 1) {
+  figma.notify('Please select 1 layer only!');
+
+  figma.closePlugin();
+}
+
+figma.showUI(__html__, {
+  title: 'Replace All',
+  height: 250,
+});
 
 figma.ui.onmessage = (msg) => {
-  if (msg.type === 'create-rectangles') {
-    const nodes = [];
+  if (msg.type === 'replace-all') {
+    const { from, to } = msg;
+    figma.currentPage
+      .findAll((node) => node.name.trim().includes(from.trim()))
+      .forEach((node) => {
+        node.name = node.name.replace(from, to);
+      });
 
-    for (let i = 0; i < msg.count; i++) {
-      const rect = figma.createRectangle();
-      rect.x = i * 150;
-      rect.fills = [{ type: 'SOLID', color: { r: 1, g: 0.5, b: 0 } }];
-      figma.currentPage.appendChild(rect);
-      nodes.push(rect);
-    }
+    figma.notify('Finished replacing');
 
-    figma.currentPage.selection = nodes;
-    figma.viewport.scrollAndZoomIntoView(nodes);
+    figma.closePlugin();
+  }
 
-    // This is how figma responds back to the ui
+  if (msg.type === 'ready-signal') {
     figma.ui.postMessage({
-      type: 'create-rectangles',
-      message: `Created ${msg.count} Rectangles`,
+      type: 'nodes-selected',
+      nodeName: selectedNodes[0]?.name || '',
     });
   }
 
-  figma.closePlugin();
+  if (msg.type === 'cancel') {
+    figma.closePlugin();
+  }
 };
