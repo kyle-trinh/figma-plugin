@@ -1,9 +1,11 @@
 import React from 'react';
+
 import '../styles/ui.css';
 
 function App() {
   const [originalName, setOriginalName] = React.useState('');
   const [expectedName, setExpectedName] = React.useState('');
+  const [debouncedSearchValue, setDebouncedSearchValue] = React.useState('');
 
   const handleReplaceAll = () => {
     if (originalName.trim() === '' || expectedName.trim() === '') {
@@ -28,25 +30,39 @@ function App() {
     window.onmessage = (event) => {
       const { type, nodeName } = event.data.pluginMessage;
 
-      if (type === 'nodes-selected') {
+      if (type === 'node-selected') {
         setOriginalName(nodeName);
       }
     };
   }, []);
 
+  // A hook to debounce the input value
+  // It waits 500ms after user inputs value to perform nodes finding and selection
+  React.useEffect(() => {
+    const debounceTimeout = setTimeout(() => {
+      setDebouncedSearchValue(originalName);
+    }, 500);
+
+    return () => {
+      clearTimeout(debounceTimeout);
+    };
+  }, [originalName]);
+
+  React.useEffect(() => {
+    parent.postMessage({ pluginMessage: { type: 'select-nodes', value: debouncedSearchValue } }, '*');
+  }, [debouncedSearchValue]);
+
   return (
     <form>
       <p>Original layer name</p>
-      <input value={originalName} onChange={(e) => setOriginalName(e.target.value)} required />
+      <input value={originalName} required onChange={(e) => setOriginalName(e.target.value)} />
       <p>Expected layer name</p>
-      <input value={expectedName} onChange={(e) => setExpectedName(e.target.value)} required />
+      <input value={expectedName} required onChange={(e) => setExpectedName(e.target.value)} />
       <div className="action-btns">
         <button id="create" onClick={handleReplaceAll}>
           Create
         </button>
-        <button type="submit" value="submit" onClick={handleCancel}>
-          Cancel
-        </button>
+        <button onClick={handleCancel}>Cancel</button>
       </div>
     </form>
   );
