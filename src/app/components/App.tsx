@@ -60,7 +60,7 @@ function App() {
       <input value={expectedName} required onChange={(e) => setExpectedName(e.target.value)} />
       <div className="action-btns">
         <button id="create" onClick={handleReplaceAll}>
-          Create
+          Submit
         </button>
         <button onClick={handleCancel}>Cancel</button>
       </div>
